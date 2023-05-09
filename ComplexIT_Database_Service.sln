@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplexIT_Database_Service", "ComplexIT_Database_Service\ComplexIT_Database_Service.csproj", "{44D46D6D-0654-4C78-A231-7D347AFCE18E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15} = {F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLayer", "DataLayer\DataLayer.csproj", "{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44D46D6D-0654-4C78-A231-7D347AFCE18E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44D46D6D-0654-4C78-A231-7D347AFCE18E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44D46D6D-0654-4C78-A231-7D347AFCE18E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44D46D6D-0654-4C78-A231-7D347AFCE18E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7FE9586-F3F5-4B9C-8DB5-90225F7C5F15}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2DBCE20B-EE11-4D39-9E9C-7F8D88686A0B}
+	EndGlobalSection
+EndGlobal
