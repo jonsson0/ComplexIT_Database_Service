@@ -44,8 +44,17 @@ if (!app.Environment.IsDevelopment())
 
 
 app.UseCors(
-    options => options.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+   // options => options.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+   options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
 );
+
+/*
+  app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .SetIsOriginAllowed(origin => true) // allow any origin
+                .AllowCredentials()); // allow credentials
+ */
 
 
 app.UseHttpsRedirection();

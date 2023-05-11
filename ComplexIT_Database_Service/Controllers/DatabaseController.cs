@@ -1,9 +1,9 @@
-﻿using System.Text.Json.Nodes;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using DataLayer;
 using System.Text.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace ComplexIT_Database_Service.Controllers
 {
@@ -29,10 +29,11 @@ namespace ComplexIT_Database_Service.Controllers
 
             string fileSaveToPath = @"C:\Users\madsj\OneDrive\Skrivebord\from db";
 
-            var formData = test.getFile(id, fileSaveToPath);
+            var json = test.getFile(id);
 
-            var fileContent = formData.FirstOrDefault(c => c.Headers.ContentDisposition?.FileName != null);
+           // var fileContent = formData.FirstOrDefault(c => c.Headers.ContentDisposition?.FileName != null);
 
+           /*
             var jsonObject = new
             {
                 name = formData.Headers.GetValues("fileName").First(),
@@ -40,19 +41,30 @@ namespace ComplexIT_Database_Service.Controllers
                 extension = formData.Headers.GetValues("extension").First(),
                 data = fileContent.ReadAsStringAsync().Result,
             };
+           */
+            
+            
+            
 
-            // Serialize the object to a JSON string
-            string jsonString = JsonSerializer.Serialize(jsonObject);
+            
 
-            if (formData != null)
+            if (json.ToString() != "")
             {
-                var extension = formData.Headers.GetValues("extension").First();
-                Console.WriteLine("33");
-                Console.WriteLine(extension);
-                return Ok(jsonString);
-            }
+                // var extension = formData.Headers.GetValues("extension").First();
+               // Console.WriteLine("33");
+               // Console.WriteLine(extension);
+               Console.WriteLine("56");
+               Console.WriteLine(json);
 
-            return NotFound();
+               Console.WriteLine("---");
+               Console.WriteLine(Ok(json).ToString());
+
+                return Ok(json.ToString());
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost("upload", Name = nameof(saveFile))]
@@ -74,28 +86,43 @@ namespace ComplexIT_Database_Service.Controllers
 
             Console.WriteLine("printing body");
 
+            JObject jsonObject;
+
             using (StreamReader stream = new StreamReader(HttpContext.Request.Body))
             {
                 string body = stream.ReadToEnd();
 
+                Console.WriteLine("This is body");
                 Console.WriteLine(body);
-              //  JObject json = JObject.Parse(body);
+
+
+                // Serialize the variable to a JSON string
+               // string json = JsonConvert.SerializeObject(body);
+
+               Console.WriteLine("hello");
+                // Parse the JSON string into a JsonObject
+                jsonObject = JObject.Parse(body);
+
+                Console.WriteLine(jsonObject);
+                Console.WriteLine("hej");
+              
 
                 // file og name
 
-              //  json.
+                //  json.
 
                 // body = "param=somevalue&param2=someothervalue"
                 Console.WriteLine("This is the first 1000 body:");
                 //Console.WriteLine(body.Substring(0, 1000));
             }
 
+            Console.WriteLine("HEREHEREHERE");
+            Console.WriteLine(jsonObject); 
+           var test123 = test.SaveFileToPostgres(jsonObject);
 
+           Console.WriteLine("after");
 
-
-             // test.SaveFileToPostgres(body);
-
-            return Ok("Hej Tobias");
+            return Ok(jsonObject.ToString());
         }
     }
 }

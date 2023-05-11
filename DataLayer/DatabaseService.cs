@@ -1,54 +1,74 @@
-﻿namespace DataLayer;
+﻿using Newtonsoft.Json.Linq;
+
+namespace DataLayer;
+
+using Newtonsoft.Json;
 using Npgsql;
 using System.Collections;
+using System.Text;
 
 public class DatabaseService
 {
     private readonly string _connectionString = "Host=localhost;Username=postgres;Password=12345;Database=complexit_files";
 
     // for testing:
-    FormDataTesting formDataTesting = new FormDataTesting();
+   // FormDataTesting formDataTesting = new FormDataTesting();
 
-    public async Task saveFile()
+
+   public JObject getFile(int id) 
     {
-        bool isSaved = false;
-
-        MultipartFormDataContent formData;
-
-        formData = formDataTesting.genFormData();
-
-        await SaveFileToPostgres(formData);
-
-      //  return isSaved;
-    }
-
-
-    public MultipartFormDataContent getFile(int id, string savePath) 
-    {
-        var formData = getFileFromPostgres(id, savePath);
+        var json = getFileFromPostgres(id);
 
         Console.WriteLine("123");
 
-        return formData;
+        return json;
     }
 
 
-    public async Task SaveFileToPostgres(MultipartFormDataContent formData)
+    public JObject SaveFileToPostgres(JObject json)
     {
+      
+        dynamic jsonObject = JsonConvert.DeserializeObject(json.ToString());
 
-        var fileName = formData.Headers.GetValues("fileName").First();
-        var room = formData.Headers.GetValues("room").First();
+
+        var fileName = jsonObject.fileName;
+        var fileRoom = jsonObject.fileRoom;
+        var iv = jsonObject.iv;
+        var fileData = jsonObject.fileData;
+        var fileExtension = jsonObject.fileExtension;
+
+        Console.WriteLine("type:");
+        Console.WriteLine(fileData.ToString().GetType());
+
+       // byte[] dataBytes =  Encoding.Default.GetBytes(fileData.ToString());
+
+        Console.WriteLine("INSIDE INSIDE");
+        Console.WriteLine(fileName);
+        Console.WriteLine(fileRoom);
+        Console.WriteLine(iv);
+        Console.WriteLine(fileData.ToString());
+        Console.WriteLine(fileExtension);
+
+        Console.WriteLine("---");
+
+      //  Console.WriteLine(dataBytes);
+
+        Console.WriteLine("---");
+
+     //   Console.WriteLine(dataBytes.ToString());
+
+
+        //  var room = formData.Headers.GetValues("room").First();
 
         // var data = formData.Headers.GetValues("data").First();
 
         // var bytes = formData.ReadAsStringAsync();
 
 
-
         //  Console.WriteLine("here");
         //  Console.WriteLine(bytes.Result);
 
-        var extension = formData.Headers.GetValues("extension").First();
+        //  var extension = formData.Headers.GetValues("extension").First();
 
         //  byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
 
@@ -57,27 +77,20 @@ public class DatabaseService
 
 
         var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        conn.Open();
 
         var cmd = new NpgsqlCommand();
         cmd.Connection = conn;
 
 
-        cmd.CommandText = "INSERT INTO files(name, room, data, extension) VALUES (@name, @room, @data, @extension)";
-        cmd.Parameters.AddWithValue("name", fileName);
-        cmd.Parameters.AddWithValue("room", room);
+        cmd.CommandText = "INSERT INTO files(name, room, iv, data, extension) VALUES (@name, @room, @iv, @data, @extension)";
+        cmd.Parameters.AddWithValue("name", fileName.ToString());
+        cmd.Parameters.AddWithValue("room", fileRoom.ToString());
+        cmd.Parameters.AddWithValue("iv", iv.ToString());
+        cmd.Parameters.AddWithValue("data", fileData.ToString());
+        cmd.Parameters.AddWithValue("extension", fileExtension.ToString());
 
-        var fileContent = formData.FirstOrDefault(c => c.Headers.ContentDisposition?.FileName != null);
-        byte[] bytes;
-
-        if (fileContent != null)
-        {
-            // file data as a byte array
-            bytes = await fileContent.ReadAsByteArrayAsync();
-            cmd.Parameters.AddWithValue("data", bytes);
-        }
-        //  cmd.Parameters.AddWithValue("data", new byte[0]);
-        cmd.Parameters.AddWithValue("extension", extension);
+        //  var fileContent = formData.FirstOrDefault(c => c.Headers.ContentDisposition?.FileName != null);
 
 
         /*
@@ -87,26 +100,32 @@ public class DatabaseService
 
         cmd.Parameters.AddWithValue("data", NpgsqlDbType.Bytea, data);
         */
-        await cmd.ExecuteNonQueryAsync();
+
+        Console.WriteLine("sending");
+
+        cmd.ExecuteNonQueryAsync();
 
         cmd.Dispose();
         // stream.Dispose();
 
         // also closes the connection
         conn.Dispose();
+        return new JObject();
     }
 
-    public  MultipartFormDataContent getFileFromPostgres(int fileId, string savePath)
+    public  JObject getFileFromPostgres(int fileId)
     {
         var conn = new NpgsqlConnection(_connectionString);
 
-        var formData = new MultipartFormDataContent();
+      //  var formData = new MultipartFormDataContent();
+
+        JObject json = new JObject();
 
         conn.Open();
 
         var cmd = new NpgsqlCommand();
         cmd.Connection = conn;
-        cmd.CommandText = "SELECT name, room, data, extension FROM files WHERE id = @id";
+        cmd.CommandText = "SELECT id, name, room, iv, data, extension FROM files WHERE id = @id";
         cmd.Parameters.AddWithValue("id", fileId);
 
 
@@ -114,29 +133,41 @@ public class DatabaseService
 
         if (reader.Read())
         {
-            var fileName = reader.GetString(0);
-            var fileRoom = reader.GetString(1);
-            var fileData = reader.GetFieldValue<byte[]>(2);
-            var fileExtension = reader.GetString(3);
-            var filePath = Path.Combine(savePath, fileName + fileExtension);
+            var id = reader.GetInt32(0);
+
+            var fileName = reader.GetString(1);
+            var fileRoom = reader.GetString(2);
+            var iv = reader.GetString(3);
+            var fileData = reader.GetFieldValue<byte[]>(4);
+            var fileExtension = reader.GetString(5);
+
+            // var filePath = Path.Combine(savePath, fileName + fileExtension);
 
             Console.WriteLine("HERE");
             Console.WriteLine(fileRoom);
 
-            var numberOfBytes = fileData.Length;
 
-            MemoryStream memoryStream = new MemoryStream(fileData);
-            StreamContent streamContent = new StreamContent(memoryStream);
+            json.Add("id", id);
+            json.Add("fileName", fileName);
+            json.Add("fileRoom", fileRoom);
+            json.Add("iv", iv);
+            json.Add("fileData", Encoding.Default.GetString(fileData));
+            json.Add("fileExtension", fileExtension);
 
-            formData.Add(streamContent, "file", "fileName");
+            //  var numberOfBytes = fileData.Length;
 
-            formData.Headers.Add("fileName", fileName);
-            formData.Headers.Add("room", fileRoom);
+            // MemoryStream memoryStream = new MemoryStream(fileData);
+            //  StreamContent streamContent = new StreamContent(memoryStream);
+
+            // formData.Add(streamContent, "file", "fileName");
+
+            // formData.Headers.Add("fileName", fileName);
+            // formData.Headers.Add("room", fileRoom);
 
             //formData.Headers.Add("data", "data");
-            formData.Headers.Add("extension", fileExtension);
+            // formData.Headers.Add("extension", fileExtension);
 
-            formData.Headers.Add("numberofbytes", numberOfBytes.ToString());
+            //  formData.Headers.Add("numberofbytes", numberOfBytes.ToString());
 
             /*
             var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
@@ -149,8 +180,10 @@ public class DatabaseService
         reader.Dispose();
         conn.Dispose();
 
-        return formData;
+        Console.WriteLine("172 172 172");
+        Console.WriteLine(json);
 
+        return json;
     }
 
 
