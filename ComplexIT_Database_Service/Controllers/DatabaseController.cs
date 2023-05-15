@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using System.Web;
 
 namespace ComplexIT_Database_Service.Controllers
 {
@@ -13,7 +14,7 @@ namespace ComplexIT_Database_Service.Controllers
     {
        // private IDatabaseService _databaseService;
 
-        private DatabaseService test = new DatabaseService();
+        private DatabaseService databaseService = new DatabaseService();
 
 
         public DatabaseController(/*IDatabaseService databaseService*/)
@@ -22,47 +23,29 @@ namespace ComplexIT_Database_Service.Controllers
         }
 
         [HttpGet("{id}", Name = nameof(getFile))]
-        public IActionResult getFile(int id)
+        public IActionResult getFile(string id)
         {
 
-            Console.WriteLine("123");
+            //  string fileSaveToPath = @"C:\Users\madsj\OneDrive\Skrivebord\from db";
 
-            string fileSaveToPath = @"C:\Users\madsj\OneDrive\Skrivebord\from db";
 
-            var json = test.getFile(id);
+            Console.WriteLine("GET REQUEST");
+            Console.WriteLine("This is the string id that is being requested:");
+            Console.WriteLine(id);
 
-           // var fileContent = formData.FirstOrDefault(c => c.Headers.ContentDisposition?.FileName != null);
+            var jObject = databaseService.getFile(id);
 
-           /*
-            var jsonObject = new
+
+            if (jObject.Count > 0)
             {
-                name = formData.Headers.GetValues("fileName").First(),
-                room = formData.Headers.GetValues("room").First(),
-                extension = formData.Headers.GetValues("extension").First(),
-                data = fileContent.ReadAsStringAsync().Result,
-            };
-           */
-            
-            
-            
-
-            
-
-            if (json.ToString() != "")
-            {
-                // var extension = formData.Headers.GetValues("extension").First();
-               // Console.WriteLine("33");
-               // Console.WriteLine(extension);
-               Console.WriteLine("56");
-               Console.WriteLine(json);
-
-               Console.WriteLine("---");
-               Console.WriteLine(Ok(json).ToString());
-
-                return Ok(json.ToString());
+                Console.WriteLine("Returning ok to the get request with the jObject as body");
+                Console.WriteLine("-----------------------------------");
+                return Ok(jObject.ToString());
             }
             else
             {
+                Console.WriteLine("Returning 404 not found to the get request");
+                Console.WriteLine("-----------------------------------");
                 return NotFound();
             }
         }
@@ -71,58 +54,62 @@ namespace ComplexIT_Database_Service.Controllers
         [RequestSizeLimit(100_000_000)]
         public IActionResult saveFile()
         {
+
+            Console.WriteLine("POST UPLOAD REQUEST");
+
+
+            Stream inputStream = Request.Body;
+
             /*
-            if (str.Equals("123"))
-            {
-                Console.WriteLine("123");
-            }s
+             var formData = Request.Form;
 
-            if (str.Equals("12345"))
-            {
-                Console.WriteLine("12345");
-            }
+             foreach (var VARIABLE in formData)
+             {
+                 Console.WriteLine(VARIABLE);
+             }
             */
-          
 
-            Console.WriteLine("printing body");
-
-            JObject jsonObject;
+            JObject jsonObject = new JObject();
 
             using (StreamReader stream = new StreamReader(HttpContext.Request.Body))
             {
                 string body = stream.ReadToEnd();
 
-                Console.WriteLine("This is body");
-                Console.WriteLine(body);
 
+               // Console.WriteLine(body);
 
-                // Serialize the variable to a JSON string
-               // string json = JsonConvert.SerializeObject(body);
-
-               Console.WriteLine("hello");
+               // Console.WriteLine("This is the body after converting to JObject:");
                 // Parse the JSON string into a JsonObject
                 jsonObject = JObject.Parse(body);
-
-                Console.WriteLine(jsonObject);
-                Console.WriteLine("hej");
-              
-
-                // file og name
-
-                //  json.
-
-                // body = "param=somevalue&param2=someothervalue"
-                Console.WriteLine("This is the first 1000 body:");
-                //Console.WriteLine(body.Substring(0, 1000));
+              //  Console.WriteLine(jsonObject);
             }
 
-            Console.WriteLine("HEREHEREHERE");
-            Console.WriteLine(jsonObject); 
-           var test123 = test.SaveFileToPostgres(jsonObject);
 
-           Console.WriteLine("after");
+            var id = databaseService.SaveFileToPostgres(jsonObject);
+            // var id = databaseService.SaveFileToPostgres(body);
 
-            return Ok(jsonObject.ToString());
+            Console.WriteLine("Returning ok with the id as body");
+            Console.WriteLine("-----------------------------------");
+
+            return Ok(id);
         }
+
+
+
+
+
+
+
+        [HttpDelete("delete/{room}" , Name = nameof(deleteFilesFromRoom))]
+        [RequestSizeLimit(100_000_000)]
+        public IActionResult deleteFilesFromRoom(string room)
+        {
+            Console.WriteLine("deleting all files from room:");
+            Console.WriteLine(room);
+            databaseService.DeletefilesFromRoom(room);
+
+            return Ok();
+        }
+
     }
 }
