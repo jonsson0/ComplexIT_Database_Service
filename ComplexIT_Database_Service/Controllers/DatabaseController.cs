@@ -23,6 +23,7 @@ namespace ComplexIT_Database_Service.Controllers
         }
 
         [HttpGet("{id}", Name = nameof(getFile))]
+        [RequestSizeLimit(100_000_000)]
         public IActionResult getFile(string id)
         {
 
@@ -49,6 +50,36 @@ namespace ComplexIT_Database_Service.Controllers
                 return NotFound();
             }
         }
+
+        [HttpGet("allfiles/{roomId}", Name = nameof(getFilesFromRoom))]
+        [RequestSizeLimit(100_000_000)]
+        public IActionResult getFilesFromRoom(string roomId)
+        {
+
+            //  string fileSaveToPath = @"C:\Users\madsj\OneDrive\Skrivebord\from db";
+
+
+            Console.WriteLine("GET REQUEST");
+            Console.WriteLine("This is the string roomId, where all the files are being requested from:");
+            Console.WriteLine(roomId);
+
+            var jObject = databaseService.getFilesFromRoom(roomId);
+
+
+            if (jObject.Count > 0)
+            {
+                Console.WriteLine("Returning ok to the get request with the jObject as body");
+                Console.WriteLine("-----------------------------------");
+                return Ok(jObject.ToString());
+            }
+            else
+            {
+                Console.WriteLine("Returning 404 not found to the get request");
+                Console.WriteLine("-----------------------------------");
+                return NotFound();
+            }
+        }
+
 
         [HttpPost("upload", Name = nameof(saveFile))]
         [RequestSizeLimit(100_000_000)]
@@ -94,13 +125,7 @@ namespace ComplexIT_Database_Service.Controllers
             return Ok(id);
         }
 
-
-
-
-
-
-
-        [HttpDelete("delete/{room}" , Name = nameof(deleteFilesFromRoom))]
+        [HttpDelete("delete/room/{room}" , Name = nameof(deleteFilesFromRoom))]
         [RequestSizeLimit(100_000_000)]
         public IActionResult deleteFilesFromRoom(string room)
         {
@@ -108,8 +133,21 @@ namespace ComplexIT_Database_Service.Controllers
             Console.WriteLine(room);
             databaseService.DeletefilesFromRoom(room);
 
-            return Ok();
+            Console.WriteLine("Returning with OK");
+            return Ok("All files from the following room deleted: " + room);
         }
+        
+        [HttpDelete("delete/file/{id}", Name = nameof(deleteFile))]
+        [RequestSizeLimit(100_000_000)]
+        public IActionResult deleteFile(string id)
+        {
+            Console.WriteLine("deleting file with id:");
+            Console.WriteLine(id);
+            databaseService.Deletefile(id);
 
+            Console.WriteLine("Returning with OK");
+            return Ok("File deleted");
+        }
+        
     }
 }

@@ -99,7 +99,7 @@ public class DatabaseService
             var fileExtension = reader.GetString(5);
 
             Console.WriteLine("This is the individual values in get:");
-            Console.WriteLine("id: " + fileId.ToString());
+            Console.WriteLine("id: " + id.ToString());
             Console.WriteLine("fileName: " + fileName.ToString());
             Console.WriteLine("fileRoom: " + fileRoom.ToString());
             Console.WriteLine("iv: " + iv.ToString());
@@ -125,6 +125,71 @@ public class DatabaseService
         return json;
     }
 
+    public JObject getFilesFromRoom(string roomId)
+    {
+        var conn = new NpgsqlConnection(_connectionString);
+
+        JObject json = new JObject();
+
+        conn.Open();
+
+        var cmd = new NpgsqlCommand();
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT id, name, room, iv, data, extension FROM files WHERE room = @room";
+        cmd.Parameters.AddWithValue("room", roomId);
+
+
+        var reader = cmd.ExecuteReader();
+
+        int count = -1;
+
+        while (reader.Read())
+        {
+            count++;
+            var id = reader.GetString(0);
+            var fileName = reader.GetString(1);
+            var fileRoom = reader.GetString(2);
+            var iv = reader.GetString(3);
+            // var fileData = reader.GetFieldValue<byte[]>(4);
+            var fileData = reader.GetString(4);
+            var fileExtension = reader.GetString(5);
+
+            /*
+            Console.WriteLine("This is the individual values in get:");
+            Console.WriteLine("id: " + id.ToString());
+            Console.WriteLine("fileName: " + fileName.ToString());
+            Console.WriteLine("fileRoom: " + fileRoom.ToString());
+            Console.WriteLine("iv: " + iv.ToString());
+            Console.WriteLine("fileData (first 10 chars): " + fileData.ToString().Substring(0, 10));
+            Console.WriteLine("fileExtension: " + fileExtension.ToString());
+            */
+
+            JObject innerJson = new JObject();
+
+
+            innerJson.Add("id", id);
+            innerJson.Add("fileName", fileName);
+            innerJson.Add("fileRoom", fileRoom);
+            innerJson.Add("iv", iv);
+            //  json.Add("fileData", Encoding.Default.GetString(fileData));
+            innerJson.Add("fileData", fileData);
+
+            innerJson.Add("fileExtension", fileExtension);
+
+            json.Add("file "+ count, innerJson);
+        }
+
+        Console.WriteLine("This is the json:");
+        Console.WriteLine(json);
+
+        cmd.Dispose();
+        reader.Dispose();
+        conn.Dispose();
+
+        return json;
+    }
+
+
     public void DeletefilesFromRoom(string room)
     {
 
@@ -148,6 +213,32 @@ public class DatabaseService
         // also closes the connection
         conn.Dispose();
     }
+
+    public void Deletefile(string id)
+    {
+
+        var conn = new NpgsqlConnection(_connectionString);
+        conn.Open();
+
+        var cmd = new NpgsqlCommand();
+        cmd.Connection = conn;
+
+
+        cmd.CommandText = "DELETE FROM files WHERE id = @id";
+        cmd.Parameters.AddWithValue("id", id);
+
+        Console.WriteLine("sending query to database to delete file with id: " + id);
+
+        cmd.ExecuteNonQuery();
+
+        cmd.Dispose();
+        // stream.Dispose();
+
+        // also closes the connection
+        conn.Dispose();
+    }
+
+
 
 
     public async Task SaveFileFromDb(int fileId, string savePath)
