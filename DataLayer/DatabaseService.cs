@@ -199,7 +199,6 @@ public class DatabaseService
         var cmd = new NpgsqlCommand();
         cmd.Connection = conn;
 
-
         cmd.CommandText = "DELETE FROM files WHERE room = @room";
         cmd.Parameters.AddWithValue("room", room);
         

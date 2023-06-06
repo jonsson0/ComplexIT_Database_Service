@@ -125,7 +125,7 @@ namespace ComplexIT_Database_Service.Controllers
             return Ok(id);
         }
 
-        [HttpDelete("delete/room/{room}" , Name = nameof(deleteFilesFromRoom))]
+        [HttpDelete("files/room/{room}" , Name = nameof(deleteFilesFromRoom))]
         [RequestSizeLimit(100_000_000)]
         public IActionResult deleteFilesFromRoom(string room)
         {
